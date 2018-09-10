@@ -1,3 +1,7 @@
+import request from 'request'
+import * as cookie from './cookie.js'
+import { parseQuery } from './parse-query'
+
 export class defaulRequestOption {
     constructor() {
         this.url = "https://web9.vghtpe.gov.tw/";
@@ -14,4 +18,28 @@ export class defaulRequestOption {
     }
 }
 
+export function requestAsync(query, passResult) {
+    return new Promise((resolve, reject) => {
+        var serverRequest = parseQuery(query);
+
+        var option = new defaulRequestOption();
+        option.headers = {
+            'Cookie': cookie.getCookieString()
+        }
+        option.url = serverRequest.url
+        serverRequest.method && (option.method = serverRequest.method)
+        serverRequest.form && (option.form = serverRequest.form)
+        serverRequest.body && (option.body = serverRequest.body)
+
+        request(option, function (error, response, body) {
+            cookie.storeFromArray(response.headers['set-cookie']);
+            passResult || (passResult = {});
+            passResult.value = body;
+            passResult.query = query;
+            //serverRequest.parser && (passResult.parsed = parser[serverRequest.parser](passResult.value));
+            resolve(passResult);
+        });
+    })
+
+}
 

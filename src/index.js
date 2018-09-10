@@ -1,3 +1,11 @@
-import {signInAsync} from './crawler/auth.js'
+import { signInAsync } from './crawler/auth'
+import { requestAsync } from './crawler/server'
+import pw from './env/pw'
 
-signInAsync('DOC3924B','111111')
+signInAsync(pw.account, pw.password)
+    .then(() => {
+        return requestAsync({ name: 'PatientList', ward: 'NICU' });
+    })
+    .then((x)=>{
+        
+    })
