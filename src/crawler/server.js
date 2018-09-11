@@ -1,6 +1,7 @@
 import request from 'request'
 import * as cookie from './cookie.js'
 import { parseQuery } from './parse-query'
+import { parseHTML } from './parse-html'
 
 export class defaulRequestOption {
     constructor() {
@@ -30,13 +31,18 @@ export function requestAsync(query, passResult) {
         serverRequest.method && (option.method = serverRequest.method)
         serverRequest.form && (option.form = serverRequest.form)
         serverRequest.body && (option.body = serverRequest.body)
-
+        if (!serverRequest.success) {
+            reject('ERROR: bad query.');
+        }
         request(option, function (error, response, body) {
             cookie.storeFromArray(response.headers['set-cookie']);
             passResult || (passResult = {});
-            passResult.value = body;
             passResult.query = query;
-            //serverRequest.parser && (passResult.parsed = parser[serverRequest.parser](passResult.value));
+            passResult.response = body;
+            let HTMLparser = parseHTML[query.name]
+            if (HTMLparser) {
+                passResult.structured = HTMLparser(passResult.response, passResult.query);
+            }
             resolve(passResult);
         });
     })

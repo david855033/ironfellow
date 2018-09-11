@@ -4,8 +4,8 @@ import pw from './env/pw'
 
 signInAsync(pw.account, pw.password)
     .then(() => {
-        return requestAsync({ name: 'PatientList', ward: 'NICU' });
+        return requestAsync({ name: 'PatientList', doctorID: '3972' });
     })
-    .then((x)=>{
-        
+    .then((passResult)=>{
+        console.log(passResult.structured)
     })

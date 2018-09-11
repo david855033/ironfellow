@@ -1,28 +1,35 @@
 export function parseQuery(query) {
     var result = getServerRequest(query);
     result.query = query;
-    console.log("request action: " + query.name);
-    console.log(result)
     return result;
 }
 
-
+//mapping to different query
 let getServerRequest = function (query) {
-    let result = { query };
-    if (query.name == "PatientList" && (query.ward || query.doctor_id)) {
+    let returnRequest = { query, success: false };
+    if (query.name == "PatientList") {
+        patientListRequest(returnRequest)
+    }
+    return returnRequest;
+}
+
+let patientListRequest = function (returnRequest) {
+    let query = returnRequest.query
+    if (query.ward || query.doctorID) {
         //field可以是wd(病房)或是drid(醫師燈號))
         var form = { wd: "0", histno: "" };
         if (query.ward) {
             form['wd'] = query.ward;
         } else {
-            form['drid'] = query.doctor_id;
+            form['drid'] = query.doctorID;
         }
-        result.url = "https://web9.vghtpe.gov.tw/emr/qemr/qemr.cfm?action=findPatient"
-        result.method = "POST"
-        result.form = form   
+        returnRequest.url = "https://web9.vghtpe.gov.tw/emr/qemr/qemr.cfm?action=findPatient"
+        returnRequest.method = "POST"
+        returnRequest.form = form
+        returnRequest.success = true;
     }
-    return result;
 }
+
 // else if (query.name == "preSelectPatient") {
     //     return {
     //         url: "https://web9.vghtpe.gov.tw/emr/qemr/qemr.cfm?action=findEmr&histno=" + queryList[1]
