@@ -1,7 +1,8 @@
 import request from 'request'
+import _ from 'lodash'
 import * as cookie from './cookie.js'
-import { parseQuery } from './parse-query'
-import { parseHTML } from './parse-html'
+import { queryToRequest } from './query-to-request.js'
+import { parsers } from './parsers.js'
 
 export class defaulRequestOption {
     constructor() {
@@ -21,7 +22,7 @@ export class defaulRequestOption {
 
 export function requestAsync(query, passResult) {
     return new Promise((resolve, reject) => {
-        var serverRequest = parseQuery(query);
+        var serverRequest = queryToRequest(query);
 
         var option = new defaulRequestOption();
         option.headers = {
@@ -32,16 +33,18 @@ export function requestAsync(query, passResult) {
         serverRequest.form && (option.form = serverRequest.form)
         serverRequest.body && (option.body = serverRequest.body)
         if (!serverRequest.success) {
-            reject('ERROR: bad query.');
+            reject('ERROR: bad query: ' + JSON.stringify(query));
         }
         request(option, function (error, response, body) {
             cookie.storeFromArray(response.headers['set-cookie']);
             passResult || (passResult = {});
             passResult.query = query;
-            passResult.response = body;
-            let HTMLparser = parseHTML[query.name]
+            passResult.rawResponse = body;
+            let HTMLparser = parsers[query.queryName] //lookup html parser in parsers.js
             if (HTMLparser) {
-                passResult.structured = HTMLparser(passResult.response, passResult.query);
+                passResult.structured = _.merge(passResult.structured, HTMLparser(passResult.rawResponse, passResult.query))
+            } else {
+                passResult.structured = "parser is not defined"
             }
             resolve(passResult);
         });
